@@ -1,0 +1,11 @@
+all:
+  vars:
+    ansible_user: root
+    ansible_connection: ssh
+    ansible_python_interpreter: /usr/bin/python3
+    anisible_ssh_private_key_file: /home/fred/.ssh/id_ed25519
+    code_server_password: "${codeserver}"
+
+  hosts:
+    code-server:
+      ansible_host: 152.42.216.64

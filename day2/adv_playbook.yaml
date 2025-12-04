@@ -1,0 +1,17 @@
+- name: Playbook 101
+  hosts: all
+
+  tasks:
+  - name: Check connectivity
+    ping: 
+  - name: update the apt
+    apt: 
+      update_cache: yes
+  - name: Install packages
+    apt: 
+      name: "{{item}}"
+      state: present
+    loop:
+    - nginx
+    - unzip
+    - tmux

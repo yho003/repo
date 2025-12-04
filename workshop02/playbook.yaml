@@ -1,0 +1,89 @@
+- name: Install and Configure Code-Server
+  hosts: all
+  become: yes
+  tasks:
+    - name: Install required packages
+      apt:
+        name:
+          - curl
+          - nginx
+        state: present
+    - name: Download and install code-server
+      shell: |
+        curl -fsSL https://code-server.dev/install.sh | sh
+      args:
+        creates: /usr/bin/code-server
+    - name: Ensure code-server systemd directory exists
+      file:
+        path: /lib/systemd/system
+        state: directory
+        mode: '0755'
+    - name: Create code-server systemd service file
+      template:
+        src: /home/fred/myrepo/workshop02/code-server.service
+        dest: /lib/systemd/system/code-server.service
+        mode: '0644'
+    - name: Get droplet IP address
+      set_fact:
+        droplet_ip: "{{ ansible_default_ipv4.address }}"
+    - name: Create nginx configuration for code-server
+      copy:
+        dest: /etc/nginx/sites-available/code-server.conf
+        content: |
+          server {
+              listen 80;
+              listen [::]:80;
+              server_name code-{{ droplet_ip }}.nip.io;
+              location / {
+                  proxy_pass http://127.0.0.1:8080/;
+                  proxy_set_header Host $host;
+                  proxy_set_header Upgrade $http_upgrade;
+                  proxy_set_header Connection upgrade;
+                  proxy_set_header Accept-Encoding gzip;
+                  proxy_set_header X-Real-IP $remote_addr;
+                  proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+                  proxy_set_header X-Forwarded-Proto $scheme;
+              }
+          }
+        mode: '0644'
+    - name: Remove default nginx site
+      file:
+        path: /etc/nginx/sites-enabled/default
+        state: absent
+    - name: Enable code-server nginx site
+      file:
+        src: /etc/nginx/sites-available/code-server.conf
+        dest: /etc/nginx/sites-enabled/code-server.conf
+        state: link
+    - name: Test nginx configuration
+      command: nginx -t
+      register: nginx_test
+      changed_when: false
+    - name: Reload systemd daemon
+      systemd:
+        daemon_reload: yes
+    - name: Enable and start code-server service
+      systemd:
+        name: code-server
+        enabled: yes
+        state: restarted
+        daemon_reload: yes
+    - name: Restart nginx service
+      systemd:
+        name: nginx
+        enabled: yes
+        state: restarted
+        daemon_reload: yes
+    - name: Wait for code-server to be ready
+      wait_for:
+        port: 8080
+        host: 127.0.0.1
+        delay: 5
+        timeout: 60
+    - name: Display access information
+      debug:
+        msg:
+          - "Code-server is now running!"
+          - "Access URL: http://{{ droplet_ip }}"
+          - "Domain URL: http://code-{{ droplet_ip }}.nip.io"
+          - "Password: {{ code_server_password }}"

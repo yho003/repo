@@ -1,0 +1,21 @@
+- name: Playbook 101
+  hosts: all
+  
+  tasks:
+  - name: Check connectivity
+    ping: 
+  - name: Echo anisible usr
+    debug:
+      msg: "The anisible user is {{ansible_user}}"
+  - name: create temp/file
+    file:
+      path: /opt/tmp
+      state: directory
+      mode: '1777'
+  - name: install unzip
+    apt:
+      name: unzip
+      state: present
+ 
+
+

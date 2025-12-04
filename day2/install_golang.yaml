@@ -1,0 +1,31 @@
+- name: unarchive
+  hosts: all
+  tasks:
+  - name: Check connectivity
+    ping:
+  - name: check if dir exist
+    stat:
+      path: /usr/local/share/lang
+    register: result
+  - name: result print
+    debug:
+      msg: "{{result.stat}}"
+  - name: Create directory
+    file:
+      path: /usr/local/share/lang 
+      state: directory
+      mode: '1777'
+  - name: Download and install golang
+    unarchive:
+      src: https://go.dev/dl/go1.25.5.linux-amd64.tar.gz
+      dest: /usr/local/share/lang
+      remote_src: yes
+  - name: link
+    file:
+      src: /usr/local/share/lang/go
+      dest: /usr/local/bin/go
+      state: link
+  # - name: gen path file
+  #   template: 
+  #     src: ./path.j2
+  #     dst: 
