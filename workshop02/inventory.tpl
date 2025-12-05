@@ -8,4 +8,4 @@ all:
 
   hosts:
     code-server:
-      ansible_host: 152.42.216.64
+      ansible_host: 157.245.148.205
