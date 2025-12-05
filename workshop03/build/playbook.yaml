@@ -1,0 +1,21 @@
+- name: Install and Configure Code-Server
+  hosts: all
+  become: true
+  tasks:
+    - name: Install nginx
+      apt:
+        update_cache: yes
+
+    - name: Install required packages
+      apt:
+        name:
+          - curl
+          - nginx
+        state: present
+    
+    - name: Create code-server systemd service file
+      template:
+        src: /home/fred/myrepo/workshop03/build/code-server.service
+        dest: /lib/systemd/system/code-server.service
+        mode: '0644'
+

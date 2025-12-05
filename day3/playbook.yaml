@@ -1,0 +1,13 @@
+- name: Install nginx
+  hosts: all
+  # gather_facts: false
+  tasks:
+  - name: Install nginx
+    apt:
+      update_cache: yes
+      name: nginx
+      state: present
+    register: result
+    until: result is succeeded or result.stderr == ""
+    retries: 10
+    delay: 10
